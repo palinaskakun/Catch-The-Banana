@@ -1,5 +1,5 @@
 # Catch-The-Banana
-A simple catcher game implemented using Python Pygame library. The game is controlled by moving a cursor which moves the character left or right to catch falling bananas.
+A catcher game implemented using Python Pygame library. The game is controlled by moving a cursor which moves the character left or right to catch falling bananas.
 
 <img width="994" alt="Screenshot 2023-03-15 at 6 35 52 PM" src="https://user-images.githubusercontent.com/102822796/225464963-286726f1-c314-48ee-91b5-7fd74bc8aec7.png">
 
