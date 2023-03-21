@@ -1,6 +1,5 @@
 import pygame
 import random
-import math
 
 pygame.init()
 
@@ -211,17 +210,4 @@ while is_game_running:
         fps_clock.tick(30)
         
 
-
-
-
-
-
-  # shelf1 = pygame.Rect(0, 150, 270, 20)
-        # pygame.draw.rect(screen, [0,0,0], shelf1)
-        # shelf2 = pygame.Rect(0, 300, 170, 20)
-        # pygame.draw.rect(screen, [0,0,0], shelf2)
-        # shelf3 = pygame.Rect(screen_width-270, 150, 270, 20)
-        # pygame.draw.rect(screen, [0,0,0], shelf3)
-        # shelf4 = pygame.Rect(screen_width-170, 300, 170, 20)
-        # pygame.draw.rect(screen, [0,0,0], shelf4)
         
