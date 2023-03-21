@@ -42,7 +42,7 @@ time_between_enemies = 200
 x_pos=0
 y_pos = screen_height
 points = 0
-lives=5
+lives= 10 
 speed=4
 
 while is_game_running:
