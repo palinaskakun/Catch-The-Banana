@@ -224,6 +224,7 @@ while running:
                 running = False
             if event.type == pygame.KEYDOWN:
                 game_mode = "main_menu"
+                dropped_bananas.clear()
 
     pygame.display.flip()
     clock.tick(FPS)
