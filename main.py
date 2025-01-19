@@ -1,6 +1,7 @@
-import pygame
 import random
 import os
+os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "1"
+import pygame
 
 # Initialize pygame
 pygame.init()
