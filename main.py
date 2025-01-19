@@ -97,7 +97,7 @@ lives = 5
 speed = 2
 last_enemy_time = 0
 time_between_enemies = 400
-level_targets = [20, 50, 70]  # Points required for Levels 1, 2, 3
+level_targets = [50, 70, 100]  # Points required for Levels 1, 2, 3
 dropped_bananas = []  # Store locations of dropped bananas and their corresponding smash images
 
 player = Player()
