@@ -1,5 +1,6 @@
 import pygame
 import random
+import os
 
 # Initialize pygame
 pygame.init()
@@ -14,29 +15,34 @@ FPS = 60
 
 # Colors
 COLOR_BLACK = (0, 0, 0)
+COLOR_WHITE = (255, 255, 255)
 COLOR_GREEN = (155, 249, 100)
 COLOR_YELLOW = (255, 222, 0)
 
 # Fonts
-FONT_SMALL = pygame.font.Font("GalacticaGrid.ttf", 20)
-FONT_MAIN = pygame.font.Font("GalacticaGrid.ttf", 30)
-FONT_LARGE = pygame.font.Font("yoster.ttf", 80)
+FONT_SMALL = pygame.font.Font(os.path.join("resources", "GalacticaGrid.ttf"), 20)
+FONT_MAIN = pygame.font.Font(os.path.join("resources", "GalacticaGrid.ttf"), 30)
+FONT_LARGE = pygame.font.Font(os.path.join("resources", "yoster.ttf"), 80)
 
 # Assets
-PLAYER_IMG = pygame.transform.scale(pygame.image.load('minion.png'), (150, 150))
+PLAYER_IMG = pygame.transform.scale(pygame.image.load(os.path.join("resources", "minion.png")), (150, 150))
 BANANA_IMAGES = [
-    pygame.image.load('banana.png'),
-    pygame.image.load('banana_facingright.png'),
-    pygame.image.load('three_bananas.png'),
-    pygame.image.load('three_bananas_facing_right.png'),
+    pygame.image.load(os.path.join("resources", "banana.png")),
+    pygame.image.load(os.path.join("resources", "banana_facingright.png")),
+    pygame.image.load(os.path.join("resources", "three_bananas.png")),
+    pygame.image.load(os.path.join("resources", "three_bananas_facing_right.png")),
 ]
-BACKGROUND_MAIN = pygame.image.load("bg001.png")
+SMASH_IMAGES = [
+    pygame.transform.scale(pygame.image.load(os.path.join("resources", "smash.png")), (60, 60)),
+    pygame.transform.scale(pygame.image.load(os.path.join("resources", "smashed.png")), (60, 60)),
+]
+BACKGROUND_MAIN = pygame.image.load(os.path.join("resources", "bg001.png"))
 BACKGROUND_IMAGES = [
-    pygame.transform.scale(pygame.image.load('level1.jpg'), (SCREEN_WIDTH, SCREEN_HEIGHT)),
-    pygame.transform.scale(pygame.image.load('level2.jpg'), (SCREEN_WIDTH, SCREEN_HEIGHT)),
-    pygame.transform.scale(pygame.image.load('level3.jpg'), (SCREEN_WIDTH, SCREEN_HEIGHT)),
+    pygame.transform.scale(pygame.image.load(os.path.join("resources", "level1.jpg")), (SCREEN_WIDTH, SCREEN_HEIGHT)),
+    pygame.transform.scale(pygame.image.load(os.path.join("resources", "level2.jpg")), (SCREEN_WIDTH, SCREEN_HEIGHT)),
+    pygame.transform.scale(pygame.image.load(os.path.join("resources", "level3.jpg")), (SCREEN_WIDTH, SCREEN_HEIGHT)),
 ]
-pygame.mixer.music.load("min.mp3")
+pygame.mixer.music.load(os.path.join("resources", "min.mp3"))
 pygame.mixer.music.play(-1)
 
 # Classes
@@ -67,19 +73,32 @@ class Player(pygame.sprite.Sprite):
 
 
 # Functions
-def draw_text(surface, text, font, color, x, y):
+def draw_text_centered(surface, text, font, color, center_x, center_y):
+    """Draws text centered around the specified coordinates."""
     text_surface = font.render(text, True, color)
-    surface.blit(text_surface, (x, y))
+    text_rect = text_surface.get_rect(center=(center_x, center_y))
+    surface.blit(text_surface, text_rect)
+
+
+def draw_button(surface, text, font, button_color, center_x, center_y, width, height):
+    """Draws a centered button with text."""
+    button_rect = pygame.Rect(0, 0, width, height)
+    button_rect.center = (center_x, center_y)
+    pygame.draw.rect(surface, button_color, button_rect)
+    draw_text_centered(surface, text, font, COLOR_BLACK, button_rect.centerx, button_rect.centery)
+    return button_rect
 
 
 # Game Variables
 game_mode = "main_menu"
 current_level = 1
 points = 0
-lives = 2
+lives = 5
 speed = 2
 last_enemy_time = 0
 time_between_enemies = 400
+level_targets = [20, 50, 70]  # Points required for Levels 1, 2, 3
+dropped_bananas = []  # Store locations of dropped bananas and their corresponding smash images
 
 player = Player()
 enemies = pygame.sprite.Group()
@@ -93,25 +112,35 @@ while running:
     if game_mode == "main_menu":
         pygame.mouse.set_visible(True)
         screen.blit(BACKGROUND_MAIN, (0, 0))
-        draw_text(screen, "CATCH THE BANANA", FONT_LARGE, COLOR_BLACK, 110, 100)
-        draw_text(screen, "Use the mouse to control the minion. Don't drop bananas!", FONT_SMALL, COLOR_BLACK, 190, 200)
-        start_button_color = COLOR_GREEN if pygame.Rect(350, 300, 300, 100).collidepoint(mouse_x, mouse_y) else COLOR_YELLOW
-        pygame.draw.rect(screen, start_button_color, pygame.Rect(350, 300, 300, 100))
-        draw_text(screen, "Press to start", FONT_MAIN, COLOR_BLACK, 385, 315)
+        draw_text_centered(screen, "CATCH THE BANANA", FONT_LARGE, COLOR_BLACK, SCREEN_WIDTH // 2, 100)
+        draw_text_centered(screen, "Use the mouse to control the minion. Don't drop bananas!", FONT_SMALL, COLOR_BLACK, SCREEN_WIDTH // 2, 200)
+
+        # Falling bananas for aesthetics
+        if pygame.time.get_ticks() % 50 == 0 and len(enemies) < 5:
+            enemies.add(Enemy(random.choice(BANANA_IMAGES)))
+        enemies.update(1)
+        enemies.draw(screen)
+
+        start_button = draw_button(screen, "Press to start", FONT_MAIN, COLOR_GREEN if pygame.Rect(350, 300, 300, 100).collidepoint(mouse_x, mouse_y) else COLOR_YELLOW, SCREEN_WIDTH // 2, 300, 300, 100)
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
             if event.type == pygame.MOUSEBUTTONDOWN:
-                if pygame.Rect(350, 300, 300, 100).collidepoint(mouse_x, mouse_y):
+                if start_button.collidepoint(mouse_x, mouse_y):
                     game_mode = "game"
                     current_level = 1
-                    points, lives, speed = 0, 2, 2
+                    points, lives, speed = 0, 5, 2
                     enemies.empty()
 
     elif game_mode == "game":
         pygame.mouse.set_visible(False)
+        bg_color = COLOR_WHITE if current_level == 2 else COLOR_BLACK
         screen.blit(BACKGROUND_IMAGES[current_level - 1], (0, 0))
+
+        # Draw dropped bananas with smash images
+        for smash_pos, smash_image in dropped_bananas:
+            screen.blit(smash_image, smash_pos)
 
         # Spawn enemies
         if pygame.time.get_ticks() - last_enemy_time > time_between_enemies:
@@ -128,20 +157,21 @@ while running:
         for enemy in enemies:
             if enemy.rect.bottom > SCREEN_HEIGHT:  # Check if the banana hits the floor
                 lives -= 1
+                dropped_bananas.append((enemy.rect.topleft, random.choice(SMASH_IMAGES)))
                 enemy.kill()
 
         # Draw
         screen.blit(player.image, player.rect)
         enemies.draw(screen)
-        draw_text(screen, f"POINTS: {points}", FONT_MAIN, COLOR_BLACK, 100, 10)
-        draw_text(screen, f"LIVES: {lives}", FONT_MAIN, COLOR_BLACK, 800, 10)
+        draw_text_centered(screen, f"POINTS: {points}", FONT_MAIN, bg_color, SCREEN_WIDTH // 2, 20)
+        draw_text_centered(screen, f"LIVES: {lives}", FONT_MAIN, bg_color, SCREEN_WIDTH - 150, 20)
 
         # Check for game over
         if lives <= 0:
             game_mode = "final_screen"
 
         # Check for level completion
-        if points >= 20:
+        if points >= level_targets[current_level - 1]:
             if current_level < 3:
                 game_mode = "level_complete"
             else:
@@ -153,28 +183,30 @@ while running:
 
     elif game_mode == "level_complete":
         pygame.mouse.set_visible(True)
+        bg_color = COLOR_WHITE
         screen.blit(BACKGROUND_IMAGES[current_level - 1], (0, 0))
-        draw_text(screen, f"Congrats on finishing Level {current_level}!", FONT_LARGE, COLOR_BLACK, 50, 200)
-        draw_text(screen, "Are you ready to go to the next one?", FONT_MAIN, COLOR_BLACK, 200, 300)
-        yes_button_color = COLOR_GREEN if pygame.Rect(350, 400, 300, 100).collidepoint(mouse_x, mouse_y) else COLOR_YELLOW
-        pygame.draw.rect(screen, yes_button_color, pygame.Rect(350, 400, 300, 100))
-        draw_text(screen, "YES", FONT_MAIN, COLOR_BLACK, 450, 430)
+        draw_text_centered(screen, f"Congrats on finishing Level {current_level}!", FONT_MAIN, bg_color, SCREEN_WIDTH // 2, 200)
+        draw_text_centered(screen, "Are you ready to go to the next one?", FONT_MAIN, bg_color, SCREEN_WIDTH // 2, 300)
+        next_button = draw_button(screen, "YES", FONT_MAIN, COLOR_GREEN if pygame.Rect(350, 400, 300, 100).collidepoint(mouse_x, mouse_y) else COLOR_YELLOW, SCREEN_WIDTH // 2, 400, 300, 100)
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
             if event.type == pygame.MOUSEBUTTONDOWN:
-                if pygame.Rect(350, 400, 300, 100).collidepoint(mouse_x, mouse_y):
+                if next_button.collidepoint(mouse_x, mouse_y):
                     current_level += 1
-                    lives = 3
+                    lives = 5
                     points = 0
+                    dropped_bananas.clear()
+                    enemies.empty()  # Clear all bananas before starting the next level
                     game_mode = "game"
 
     elif game_mode == "win_screen":
         pygame.mouse.set_visible(True)
         screen.blit(BACKGROUND_IMAGES[2], (0, 0))
-        draw_text(screen, "CONGRATULATIONS!", FONT_LARGE, COLOR_BLACK, 150, 200)
-        draw_text(screen, "You completed all levels!", FONT_MAIN, COLOR_BLACK, 250, 400)
+        draw_text_centered(screen, "CONGRATULATIONS!", FONT_LARGE, COLOR_BLACK, SCREEN_WIDTH // 2, 200)
+        draw_text_centered(screen, "You completed all levels!", FONT_MAIN, COLOR_BLACK, SCREEN_WIDTH // 2, 400)
+
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
@@ -182,8 +214,9 @@ while running:
     elif game_mode == "final_screen":
         pygame.mouse.set_visible(True)
         screen.blit(BACKGROUND_MAIN, (0, 0))
-        draw_text(screen, "YOU LOST.", FONT_LARGE, COLOR_BLACK, 100, 100)
-        draw_text(screen, "Press any key to restart", FONT_MAIN, COLOR_BLACK, 250, 400)
+        draw_text_centered(screen, "YOU LOST.", FONT_LARGE, COLOR_BLACK, SCREEN_WIDTH // 2, 100)
+        draw_text_centered(screen, "Press any key to restart", FONT_MAIN, COLOR_BLACK, SCREEN_WIDTH // 2, 400)
+
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
@@ -194,6 +227,7 @@ while running:
     clock.tick(FPS)
 
 pygame.quit()
+
 
 
 
