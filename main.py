@@ -33,8 +33,8 @@ BANANA_IMAGES = [
     pygame.image.load(os.path.join("resources", "three_bananas_facing_right.png")),
 ]
 SMASH_IMAGES = [
-    pygame.transform.scale(pygame.image.load(os.path.join("resources", "smash.png")), (60, 60)),
-    pygame.transform.scale(pygame.image.load(os.path.join("resources", "smashed.png")), (60, 60)),
+    pygame.transform.scale(pygame.image.load(os.path.join("resources", "smash.png")), (100, 100)),
+    pygame.transform.scale(pygame.image.load(os.path.join("resources", "smashed.png")), (100, 100)),
 ]
 BACKGROUND_MAIN = pygame.image.load(os.path.join("resources", "bg001.png"))
 BACKGROUND_IMAGES = [
@@ -157,8 +157,10 @@ while running:
         for enemy in enemies:
             if enemy.rect.bottom > SCREEN_HEIGHT:  # Check if the banana hits the floor
                 lives -= 1
-                dropped_bananas.append((enemy.rect.topleft, random.choice(SMASH_IMAGES)))
+                smash_y = min(enemy.rect.y, SCREEN_HEIGHT - 100)  # Adjust Y to keep smash image within screen bounds
+                dropped_bananas.append(((enemy.rect.x, smash_y), random.choice(SMASH_IMAGES)))
                 enemy.kill()
+
 
         # Draw
         screen.blit(player.image, player.rect)
