@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Catch the falling bananas in this browser-based arcade game." />
+  <title>Catch the Banana</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main class="page-shell">
+    <section class="game-card" aria-label="Catch the Banana game">
+      <div class="game-toolbar">
+        <div>
+          <p class="eyebrow">Browser Arcade Game</p>
+          <h1>Catch the Banana</h1>
+        </div>
+        <button id="soundButton" class="secondary-button" type="button" aria-pressed="false">Sound: Off</button>
+      </div>
+
+      <div id="gameWrap" class="game-wrap">
+        <canvas id="gameCanvas" width="1000" height="650" aria-label="Catch the Banana game canvas"></canvas>
+        <div id="loadingMessage" class="loading-message">Loading game...</div>
+      </div>
+
+      <div class="instructions">
+        <span><strong>Desktop:</strong> move your mouse</span>
+        <span><strong>Mobile:</strong> drag your finger</span>
+        <span><strong>Goal:</strong> catch bananas before they hit the ground</span>
+      </div>
+    </section>
+  </main>
+
+  <script src="game.js"></script>
+</body>
+</html>
